@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: academic_helper
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: secure_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U student"]
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+
+  n8n:
+    image: n8nio/n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=admin
+
+  backend:
+    build: ./backend
+    environment:
+      - POSTGRES_DB=academic_helper
+      - POSTGRES_USER=student
+      - POSTGRES_PASSWORD=secure_password
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - JWT_SECRET_KEY=replace_me
+      - OPENAI_API_KEY=replace_me
+      - N8N_WEBHOOK_URL=http://n8n:5678/webhook/assignment
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - n8n
+
+volumes:
+  pgdata:
