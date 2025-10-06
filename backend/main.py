@@ -1,9 +1,16 @@
 from fastapi import FastAPI
 from .models import Base
 from sqlalchemy import create_engine
+from . import auth
+from . import upload
+from . import analyze
+
 import os
 
 app = FastAPI(title="Academic Assignment Helper")
+app.include_router(auth.router)
+app.include_router(upload.router)
+app.include_router(analyze.router)
 
 # Database connection string
 DB_USER = os.getenv("POSTGRES_USER", "student")
